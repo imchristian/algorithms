@@ -40,3 +40,5 @@ extension Array where Element: Comparable {
 // execute sort
 var sequence: Array<Int> = [7, 2, 1, 6, 8, 5, 3, 4]
 let results = sequence.quickSort()
+print(results)
+
