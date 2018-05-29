@@ -1,129 +1,116 @@
-// Tries Algorithm Example
+//: Tries Algorithm Implementation
 
 import Foundation
 
-
-//basic trie data structure
-public class TrieNode {
-    var key: String?
-    var children: Array<TrieNode>
-    var isFinal: Bool
-    var level: Int
+public class TrieNode<Key: Hashable> {
+    public var key: Key?
+    public weak var parent: TrieNode?
+    public var children: [Key: TrieNode] = [:]
+    public var isTerminating = false
     
-    init() {
-        self.children = Array<TrieNode>()
-        self.isFinal = false
-        self.level = 0
-    }
-    
-    private var root = TrieNode()
-    
-    //builds a tree hierarchy of dictionary content
-    func append(word keyword: String) {
-        //trivial case
-        guard keyword.length > 0 else {
-            return
-        }
-        
-        var current: TrieNode = root
-        
-        while keyword.length != current.level {
-            var childToUse: TrieNode!
-            let searchKey = keyword.substring(to: current.level + 1)
-            
-            //iterate through child nodes
-            for child in current.children {
-                if child.key == searchKey {
-                    childToUse = child
-                    break
-                }
-            }
-            
-            //new node
-            if childToUse == nil {
-                childToUse = TrieNode()
-                childToUse.key = searchKey
-                childToUse.level = current.level + 1
-                current.children.append(childToUse)
-            }
-            current = childToUse
-        }
-        
-        //final end of word check
-        if keyword.length == current.level {
-            current.isFinal = true
-            print("end of word reached!")
-            return
-        }
-    }
-    
-    //find words based on the prefix
-    func find(_ keyword: String) -> Array<String>? {
-        //trivial case
-        guard keyword.length > 0 else {
-            return nil
-        }
-        
-        var current: TrieNode = root
-        var wordList = Array<String>()
-        
-        while keyword.length != current.level {
-            var childToUse: TrieNode!
-            let searchKey = keyword.substring(to: current.level + 1)
-            
-            //iterate trough any child nodes
-            for child in current.children {
-                if (child.key == searchKey) {
-                    childToUse = child
-                    current = childToUse
-                    break
-                }
-            }
-            
-            if childToUse == nil {
-                return nil
-            }
-        }
-        
-        //retrieve the keyword and any descendants
-        if ((current.key == keyword) && (current.isFinal)) {
-            if let key = current.key {
-                wordList.append(key)
-            }
-        }
-        
-        //include only children that are words
-        for child in current.children {
-            if (child.isFinal == true) {
-                if let key = child.key {
-                    wordList.append(key)
-                }
-            }
-        }
-        
-        return wordList
+    public init(key: Key?, parent: TrieNode?) {
+        self.key = key
+        self.parent = parent
     }
 }
 
-extension String {
-    //compute the length
-    var length: Int {
-        return self.count
+public class Trie<CollectionType: Collection>
+        where CollectionType.Element: Hashable {
+    
+    public typealias Node = TrieNode<CollectionType.Element>
+    private let root = Node(key: nil, parent: nil)
+    
+    public init() {}
+    
+    // Insert Function
+    public func insert(_ collection: CollectionType) {
+        var current = root
+        
+        for element in collection {
+            if current.children[element] == nil {
+                current.children[element] = Node(key: element, parent: current)
+            }
+            current = current.children[element]!
+        }
+        
+        current.isTerminating = true
     }
     
-    //returns characters up to a specified integer
-    func substring(to: Int) -> String {
-        //define the range
-        let range = self.index(self.startIndex, offsetBy: to)
-        return String(self[..<range])
+    // Contain Function
+    public func contains(_ collection: CollectionType) -> Bool {
+        var current = root
+        for element in collection {
+            guard let child = current.children[element] else {
+                return false
+            }
+            current = child
+        }
+        return current.isTerminating
+    }
+    
+    // Remove Function
+    public func remove(_ collection: CollectionType) {
+        var current = root
+        for element in collection {
+            guard let child = current.children[element] else { return }
+            current = child
+        }
+        guard current.isTerminating else { return }
+        
+        current.isTerminating = false
+        while let parent = current.parent, current.children.isEmpty && !current.isTerminating {
+            parent.children[current.key!] = nil
+            current = parent
+        }
+    }
+}
+
+public extension Trie where CollectionType: RangeReplaceableCollection {
+    func collections(startingWith prefix: CollectionType) -> [CollectionType] {
+        var current = root
+        for element in prefix {
+            guard let child = current.children[element] else { return [] }
+            current = child
+        }
+        
+        return collections(startingWith: prefix, after: current)
+    }
+    
+    private func collections(startingWith prefix: CollectionType, after node: Node) -> [CollectionType] {
+        
+        var results: [CollectionType] = []
+        
+        if node.isTerminating {
+            results.append(prefix)
+        }
+        
+        for child in node.children.values {
+            var prefix = prefix
+            prefix.append(child.key!)
+            results.append(contentsOf: collections(startingWith: prefix, after: child))
+        }
+        return results
     }
 }
 
 
+let trie = Trie<String>()
+trie.insert("car")
+trie.insert("card")
+trie.insert("care")
+trie.insert("cared")
+trie.insert("cars")
+trie.insert("carbs")
+trie.insert("carapace")
+trie.insert("cargo")
 
+print("\nCollections starting with \"car\"")
+let prefixedWithCar = trie.collections(startingWith: "car")
+print(prefixedWithCar)
 
-
-
+print("\nCollections starting with \"care\"")
+let prefixedWithCare = trie.collections(startingWith: "care")
+print(prefixedWithCare)
 
 
 
