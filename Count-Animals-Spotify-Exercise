@@ -1,0 +1,11 @@
+// Given a string of animals delimited by new lines, count the  number of times each animal appears in the string.
+
+NSString *animals = @"goat,goat,bison,cow,horse,sheep,sheep,sheep";
+NSArray *animalArray = [animals componentsSeparatedByString:@","];
+NSCountedSet *countedset = [[NSCountedSet alloc] initWithArray:animalArray];
+NSMutableArray *dictArray = [NSMutableArray array];
+[countedset enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
+  [dictArray addObject:@{@"object": obj, @"count": @([countedset countForObject:obj])}];
+}];
+
+NSLog(@"Objects sorted by count: %@", [dictArray sortedArrayUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"object" ascending:YES]]]);
