@@ -15,8 +15,8 @@ public func twoSum(nums: [Int], target: Int) -> [Int] {
     var results: [Int] = []
     
     for i in 0..<nums.count {
-        if numberStorage[target - i] != nil {
-            results.append(numberStorage[target - i]!)
+        if numberStorage[target - nums[i]] != nil {
+            results.append(numberStorage[target - nums[i]]!)
             results.append(i)
             return results
         }
@@ -27,4 +27,4 @@ public func twoSum(nums: [Int], target: Int) -> [Int] {
     return []
 }
 
-twoSum(nums: [2, 7, 11, 15], target: 9)
+print(twoSum(nums: [0, 7, 2, 15], target: 9))

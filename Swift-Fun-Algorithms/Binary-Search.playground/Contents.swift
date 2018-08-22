@@ -17,11 +17,11 @@ func binarySearch(searchValue: Int, array: [Int]) -> Bool {
         }
         
         if searchValue < middleValue {
-            rightIndex = middleValue - 1
+            rightIndex = middleIndex - 1
         }
         
         if searchValue > middleValue {
-            leftIndex = middleValue + 1
+            leftIndex = middleIndex + 1
         }
     }
     
